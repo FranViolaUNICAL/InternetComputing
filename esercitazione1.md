@@ -331,6 +331,11 @@ PrintWriter puó essere usato invocando il metodo:
 
 Usando i metodi pw.print(...) o pw.write(...) possono generare questo tipo di blocco.
 
+## Serializzazione
+La serializzazione é un processo per salvare un oggetto in un supporto di memorizzazione (ad es. un file) o per trasmetterlo su una connessione di rete. La serializzazione di un oggetto puó avvenire in forma binaria o puó utilizzare codifiche testuali (XML o JSON) direttamente leggibili da utenti umani.
+
+Lo scopo della serializzazione é di trasmettere l'intero stato dell'oggetto in modo che esso possa essere successivamente ricreato nello stesso identico stato dal processo inverso, detto deserializzazione.
+
 
 
 
