@@ -109,3 +109,82 @@ Questo lo facciamo nel seguente modo:
 
 In questo modo si evitano situazioni in cui si possa realizzare una "folder escalation" usando ".." nell'URI o magari richiedere un path assoluto del sistema (ad es. il file con le password di tutti gli utenti). Se non si rientra nelle situazioni di errore segnalate sopra, il thread carica il file della risorsa richiesta e lo restituisce al client utilizzando il metodo `reply()` a cui passa l'output stream ed il file della risorsa.
 
+## Guida - Far Interagire due Applicazioni Su Reti Domestiche Diverse
+
+Quando due applicazioni devono comunicare su computer situati in reti domestiche diverse, è necessario configurare il router per consentire il traffico su una specifica porta. Segui questi passaggi per abilitare la connessione.
+
+### 1. Identificare l'Indirizzo IP Locale
+Ogni computer nella rete ha un indirizzo IP privato. Per trovarlo:
+- Su Windows: Apri il prompt dei comandi e digita `ipconfig`, quindi cerca l'"Indirizzo IPv4".
+- Su macOS/Linux: Apri il terminale e digita `ifconfig` o `ip a`.
+
+### 2. Configurare il Port Forwarding sul Router
+Il port forwarding consente alle connessioni esterne di raggiungere un dispositivo specifico nella rete locale.
+1. Accedi all'interfaccia web del router (generalmente tramite `http://192.168.1.1` o `http://192.168.0.1`).
+2. Accedi con le credenziali amministrative.
+3. Cerca la sezione "Port Forwarding" o "Virtual Server".
+4. Aggiungi una nuova regola:
+   - Porta esterna: la porta su cui il client si connetterà (es. 5000)
+   - Indirizzo IP interno: l'IP del computer che ospita l'applicazione
+   - Porta interna: la porta su cui l'applicazione è in ascolto (es. 5000)
+   - Protocollo: TCP, UDP o entrambi
+5. Salva le impostazioni e riavvia il router se necessario.
+
+### 3. Trovare l'Indirizzo IP Pubblico
+Il dispositivo che si connette dall'esterno deve conoscere l'IP pubblico del router:
+- Visita un sito come `https://www.whatismyip.com/` per trovare l'IP pubblico.
+- Questo indirizzo può cambiare nel tempo se non si ha un IP statico.
+
+### 4. (Opzionale) Usare un Servizio Dynamic DNS
+Se l'IP pubblico cambia frequentemente, si può usare un servizio di Dynamic DNS (DDNS) per assegnare un nome di dominio statico.
+1. Registrati su un servizio DDNS come No-IP o DynDNS.
+2. Configura il router con le credenziali DDNS (spesso nella sezione "DDNS" del router).
+3. Usa il dominio assegnato per connetterti invece dell'IP pubblico.
+
+### 5. Testare la Connessione
+- Dal dispositivo remoto, prova a connetterti usando `telnet [IP_pubblico] [porta]` o strumenti come `nc` su Linux/macOS.
+- Se l'applicazione usa HTTP, prova ad aprire il browser su `http://[IP_pubblico]:[porta]`.
+- Se la connessione non funziona, verifica il firewall del computer e le impostazioni del router.
+
+Seguendo questi passaggi, le due applicazioni dovrebbero essere in grado di comunicare tra loro anche se situate in reti domestiche diverse.
+
+## Datagrammi
+Le applicazioni che comunicano tramite socket possiedono un canale di comunicazione dedicato. Per comunicare, un client ed un server stabiliscono una connessione, trasmettono dati e chiudono la connessione. Tutti i dati inviati sul canale sono ricevuti nello stesso ordine in cui sono stati inviati. 
+
+Le applicazioni che comunicano tramite datagrammi inviano e ricevono pacchetti di informazione completamente indipendenti fra di loro. Queste applicazioni non dispongono e non necessitano di un canale di comunicazione punto-a-punto. La consegna dei datagrammi alla loro destinazione non é garantita e neppure l'ordine del loro arrivo. 
+
+Il package `java.net` fornisce delle classi che consentono di scrivere applicazioni che usano datagrammi per inviare e ricevere pacchetti sulla rete: `DatagramSocket` e `DatagramPacket`. Una applicazione puó inviare e ricevere `DatagramPacket` tramite un `DatagramSocket`. 
+
+## UDP (Richiamo)
+UDP é un protocollo di livello di trasporto a pacchetto. Esso é di tipo "connectionless", quindi non gestisce4 il riordinamento dei pacchetti né la ritrasmissione di quelli persi. É molto rapido poiché non c'é latenza per riordino e ritrasmissione, ed é usato da applicazioni "leggere" o time-sensitive: trasmissione di informazioni audio-video real-time come ad esempio Voip. 
+
+### `java.net.DatagramSocket`
+
+```Java
+// Crea un DatagramSocket e lo collega alla porta qualsiasi sulla macchina locale. Solleva eccezione se non si hanno i permessi necessari.
+DatagramSocket() throws SocketException;
+// Crea un DatagramSocket e lo collega alla porta specificata sulla macchina locale
+DatagramSocket(int port);
+// Riceve un DatagramPacket da questo socket
+void receive(DatagramPacket p);
+// Invia un DatagramPacket su questo socket
+void send(DatagramPacket p);
+// Chiude il DatagramSocket
+void close();
+// Crea un DatagramPacket per ricevere pacchetti di lunghezza length, che deve essere inferiore a bug.length
+DatagramPacket(byte[] buf, int length);
+// Crea un DatagramPacket per inviare pacchetti di lunghezza length all'host ed alla porta specificati
+DatagramPacket(byte[] buf, int length, InetAddress address, int port);
+// Restituisce l'indirizzo IP della macchina alla quale questo DatagramPacket deve essere inviato o da cui é stato ricevuto
+InetAddress getAddress();
+// Restituisce la porta della macchina alla quale questo DatagramPacket deve essere inviato o da cui é stato ricevuto
+int getPort();
+```
+
+### TimeServer
+
+```Java
+
+```
+
+
