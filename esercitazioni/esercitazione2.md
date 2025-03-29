@@ -98,3 +98,14 @@ La classe PrintWriter mette a disposizioni diversi costruttori, tra cui:
 1. `PrintWriter(OutputStream out)`: Crea un nuovo PrintWriter, senza il flushing automatico, da una OutputStream esistente. Il flush va attivato manualmente
 2. `PrintWriter(OutputStream out, boolean autoFlush)`: Crea un nuovo PrintWriter da una OutputStream esistente, con flush automatico ogni qualvolta viene invocato il metodo println, printf o format.
 
+## HttpServer
+Controllare file di codice sorgente per implementazione.
+
+La gestione della richiesta avviene in maniera del tutto analoga a quanto visto nei paragrafi precedenti. La differenza sta nell'aggiunta di codice che estrae l'URI della risorsa richiesta e la processa per evitare che l'utente possa richiedere risorse fuori dalla **web root**.
+
+Questo lo facciamo nel seguente modo:
+1. se l'URI della risorsa richiesta termina con "/" o "", allora aggiungiamo di defaul "index.html".
+2. Se la richiesta contiene ".." o inizia con "/" si restituisce un errore 403 Forbidden.
+
+In questo modo si evitano situazioni in cui si possa realizzare una "folder escalation" usando ".." nell'URI o magari richiedere un path assoluto del sistema (ad es. il file con le password di tutti gli utenti). Se non si rientra nelle situazioni di errore segnalate sopra, il thread carica il file della risorsa richiesta e lo restituisce al client utilizzando il metodo `reply()` a cui passa l'output stream ed il file della risorsa.
+
