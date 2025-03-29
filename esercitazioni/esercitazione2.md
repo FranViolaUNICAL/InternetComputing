@@ -181,10 +181,4 @@ InetAddress getAddress();
 int getPort();
 ```
 
-### TimeServer
-
-```Java
-
-```
-
 
