@@ -337,6 +337,3 @@ La serializzazione é un processo per salvare un oggetto in un supporto di memor
 Lo scopo della serializzazione é di trasmettere l'intero stato dell'oggetto in modo che esso possa essere successivamente ricreato nello stesso identico stato dal processo inverso, detto deserializzazione.
 
 
-
-
-

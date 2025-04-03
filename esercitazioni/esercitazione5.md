@@ -140,3 +140,296 @@ soap:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
    
 </soap:Envelope>
 ```
+
+## Web Service Description Language (WSDL)
+
+Lo standard WSDL, acronimo di Web Service Description Language è lo standard W3C per la descrizione in XML dell'interfaccia, ovvero delle API, del web. 
+
+Nel file WSDL è ovviamente riportato anche l'endpoint, ovvero la location dove si trova il servizio. Un file WSDL è un descrittore, quindi, dell'intero Web Service.
+
+Un client che ha a disposizione il file WSDL di un servizio, conosce quindi tutte le informazioni necessarie per usare quel servizio.
+
+### Struttura del documento WSDL
+
+I documenti WSDl devono essere resi disponibili su registri UDDI. Essi descrivono:
+1. Cosa un WS può fare
+2. Dove risiede
+3. Come invocarlo
+
+E' costituito essenzialmente da 5 elementi XML:
+1. Types: i tipi di dato che possono essere scambiati tra client e web service
+2. Messages: i messaggi che possono essere scambiati tra web service e client, sono definiti come composizione o aggregazione dei tipi elementari
+3. Port Types: definisce i punti di connessione (operazioni) verso il WebService (ogni operazione esposta ha un elemento portType); è un interfaccia che contiene la definizione di operazioni aventi messaggi di input e output.
+4. Bindings: fornisce dettagli implementativi per il tipo di porta, informazioni su come realizzare (implementare) la porta ed in particoare sul metodo di trasporto (soap, http, smtp);
+5. Services: indica dove le porte sono fisicamente realizzate (deployed); fornisce una descrizione testuale di ciascuna porta (leggibile dall'uomo) e informa i client da dove accedere.
+
+#### Esempi di Types
+```XML
+<types>
+   <schema targetNamespace = "http://example.com/stockquote.xsd"
+           xmlns = "http://www.w3.org/2000/10/XLMSchema">
+      <element name = "TradePriceRequest">
+         <complexType>
+            <all>
+               <element name = "tickerSymbol" type = "string"/>
+            </all>
+         </complexType>
+      </element>
+      <element name="TradePrice">
+         <complexType>
+            <all>
+               <element name = "price" type = "float" />
+            </all>
+         </complexType>
+      </element>
+   </schema>
+</types>
+```
+
+### Esempio di Documento WSDL
+```XML
+<?xml version="1.0" encoding="UTF-8" ?>
+<definitions name="HelloService"
+    targetNamespace="http://www.ecerami.com/wsdl/HelloService.wsdl"
+    xmlns="http://schemas.xmlsoap.org/wsdl/"
+    ...
+    <message>
+        <part name="firstName" type="xsd:string"/>
+    </message>
+    ...
+    <portType name="Hello_PortType">
+        <operation name="sayHello">
+           <input message="tns:SayHelloRequest"/>
+           <output message="tns:SayHelloResponse"/>
+        </operation>
+    </portType>
+    <binding name="Hello_Binding" type="tns:Hello_PortType">
+        <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <operation name="sayHello">
+           ...
+        </operation>
+    </binding>
+    <service name="HelloService">
+        ...
+    </service>
+</definitions>
+```
+
+In questo caso si noti come non si usano types particolari quindi avremo solo tipi di base. 
+
+L'elemento operation in portType ci permette di combinare request e response in un'unica operazione. Un portType può definire più operazioni. E' un'astrazione, i dettagli li fornisce il <binding>.
+
+L'elemento binding fornisce i dettagli implementativi di un portType
+
+L'elemento service fornisce le definizioni di ogni servizio. Per ciascuno dei protocolli supportati, esiste un elemento di <port>. L'elemento di servizio è una raccolta di porte. 
+
+Per ciascuno dei protocolli supportati, esiste un elemento <port> in <service>. L'elemento service è quindi una raccolta di port. I client possono leggere questa sezione per capire:
+1. Dove accedere al servizio (location)
+2. In accordo a quale port type (elemento binding di <port>) e, quindi, quali messaggi di comunicazione 
+3. <documentation> include anche una documentazione human-readable per il servizio
+
+```XML
+<service name="Hello_Service">
+   <documentation>WSDL File for HelloService</documentation>
+   <port binding ="tns:Hello_Binding" name = "Hello_Port">
+      <soap:address
+         location="http://www.examples.com/SayHello/"/>
+   </port>
+</service>
+```
+
+## UDDI (Universal Description Discovery Integration)
+E' uno standard per distribuire e reperire i Web Services. Un registro UDDI contiene i documenti WSDL associati ad un insieme di servizi, ed informazioni addizionali riguardanti le credenziali d'accesso richieste dai servizi.
+
+L'accesso ai registri UDDI può essere:
+1. Pubblico
+2. Privato
+3. Ibrido
+
+### Esempio1-WS
+
+#### Classe Java che implementa il servizio
+
+```Java
+public class Esempio1{
+    public String saluto(){
+        return "Ciao Mondo";
+    }
+}
+```
+
+#### Documento WSDL
+```XML
+<wsdl:definitions targetNamespace="http://localhost:8080/axis/services/Esempio1">
+   <wsdl:message name="salutoRequest"> </wsdl:message>
+   <wsdl:message name="salutoResponse">
+      <wsdl:part name="salutoReturn" type="xsd:string"/>
+   </wsdl:message>
+   <wsdl:portType name="Esempio1">
+      <wsdl:operation name="saluto">
+         <wsdl:input message="impl:salutoRequest" name="salutoRequest"/>
+         <wsdl:output message="impl:salutoResponse" name="salutoResponse"/>
+      </wsdl:operation>
+   </wsdl:portType>
+   <wsdl:binding name="Esempio1SoapBinding" type="impl:Esempio1">
+      <wsdlsoap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+      <wsdl:operation name="saluto">
+         <wsdlsoap:operation soapAction=""/>
+         <wsdl:input name="salutoRequest">
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://DefaultNamespace" use="encoded"/>
+         </wsdl:input>
+         <wsdl:output name="salutoResponse">
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://localhost:8080/axis/services/Esempio1" use="encoded"/>
+         </wsdl:output>
+      </wsdl:operation>
+   </wsdl:binding>
+   <wsdl:service name="Esempio1Service">
+      <wsdl:port binding="impl:Esempio1SoapBinding" name="Esempio1">
+         <wsdlsoap:address location="http://localhost:8080/axis/services/Esempio1"/>
+      </wsdl:port>
+   </wsdl:service>
+</wsdl:definitions>
+```
+
+### Esempio2-WS
+
+#### File Java
+```Java
+public class Esempio2{
+    public String saluto(String nome){
+        return "Ciao " + nome;
+    }
+}
+```
+
+#### Documento WSDL
+```XML
+<wsdl:definitions targetNamespace="http://localhost:8080/axis/services/Esempio2">
+   <wsdl:message name="salutoRequest">
+      <wsdl:part name="in0" type="soapenc:string"/>
+   </wsdl:message>
+   <wsdl:message name="salutoResponse">
+      <wsdl:part name="salutoReturn" type="xsd:string"/>
+   </wsdl:message>
+   <wsdl:portType name="Esempio2">
+      <wsdl:operation name="saluto" parameterOrder="in0">
+         <wsdl:input message="impl:salutoRequest" name="salutoRequest"/>
+         <wsdl:output message="impl:salutoResponse" name="salutoResponse"/>
+      </wsdl:operation>
+   </wsdl:portType>
+   <wsdl:binding name="Esempio2SoapBinding" type="impl:Esempio2">
+      <wsdlsoap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+      <wsdl:operation name="saluto">
+         <wsdlsoap:operation soapAction=""/>
+         <wsdl:input name="salutoRequest">
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://DefaultNamespace" use="encoded"/>
+         </wsdl:input>
+         <wsdl:output name="salutoResponse">
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://localhost:8080/axis/services/Esempio2" use="encoded"/>
+         </wsdl:output>
+      </wsdl:operation>
+   </wsdl:binding>
+   <wsdl:service name="Esempio2Service">
+      <wsdl:port binding="impl:Esempio2SoapBinding" name="Esempio2">
+         <wsdlsoap:address location="http://localhost:8080/axis/services/Esempio2"/>
+      </wsdl:port>
+   </wsdl:service>
+</wsdl:definitions>
+```
+
+### Esempio3-WS
+
+#### Classe Java
+```Java
+public class Esempio3{
+    public String saluto(String nome, String cognome){
+        return "Ciao " + nome + " " + cognome;
+    }
+}
+```
+
+#### Documento WSDL
+```XML
+<wsdl:definitions targetNamespace="http://localhost:8080/axis/services/Esempio3">
+   <wsdl:message name="salutoRequest">
+      <wsdl:part name="in0" type="soapenc:string"/>
+      <wsdl:part name="in1" type="soapenc:string"/>
+   </wsdl:message>
+   <wsdl:message name="salutoResponse">
+      <wsdl:part name="salutoReturn" type="xsd:string"/>
+   </wsdl:message>
+   <wsdl:portType name="Esempio3">
+      <wsdl:operation name="saluto" parameterOrder="in0 in1">
+         <wsdl:input message="impl:salutoRequest" name="salutoRequest"/>
+         <wsdl:output message="impl:salutoResponse" name="salutoResponse"/>
+      </wsdl:operation>
+   </wsdl:portType>
+   <wsdl:binding name="Esempio3SoapBinding" type="impl:Esempio3">
+      <wsdlsoap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+      <wsdl:operation name="saluto">
+         <wsdlsoap:operation soapAction=""/>
+         <wsdl:input name="salutoRequest">
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://DefaultNamespace" use="encoded"/>
+         </wsdl:input>
+         <wsdl:output name="salutoResponse">
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://localhost:8080/axis/services/Esempio3" use="encoded"/>
+         </wsdl:output>
+      </wsdl:operation>
+   </wsdl:binding>
+   <wsdl:service name="Esempio3Service">
+      <wsdl:port binding="impl:Esempio3SoapBinding" name="Esempio3">
+         <wsdlsoap:address location="http://localhost:8080/axis/services/Esempio3"/>
+      </wsdl:port>
+   </wsdl:service>
+</wsdl:definitions>
+```
+
+### Esempio4-WS
+#### Classe Java
+```Java
+public class Esempio4{
+    public String saluto(String[] nomi){
+        String s = "Ciao";
+        for(int i = 0; i < nomi.length, i++){
+            s += " " + nomi[i];
+            if(i < nomi.length - 1){
+                s += " ";
+            }
+       }
+        return s;
+    }
+}
+```
+
+#### Documento WSDL
+Il documento è sostanzialmente uguale a quello visto per l'esempio3, con l'aggiunta di una sezione \<wsdl:types\>
+
+```XML
+...
+<wsdl:types>
+   <schema targetNamespace="http://localhost:8080/axis/services/Esempio4">
+      <import namespace="http://schemas.xmlsoap.org/soap/encoding"/>
+      <complexType name="ArrayOf_xsd_string">
+         <complexContent>
+            <restriction base="soapenc:Array">
+               <attribute ref="soapenc:arrayType" wsdl:arrayType="xsd:string[]"/>
+            </restriction>
+         </complexContent>
+      </complexType>
+   </schema>
+</wsdl:types>
+...
+```
+
+### Tag Types e Messages
+Types descrive particolari XML data types usati nei messagi ed è opzionale.
+Message definisce in modo astratto  i messaggi che devono essere scambiati:
+1. Ogni metodo nell'interfaccia contiene 0-1 messaggi di richiesta e 0-1 messaggi di risposta
+2. Ogni messaggio consiste di elementi part, in genere un'entità "part" per ogni variabile inviata o ricevuta. Le entità "part" possono essere o tipi primitivi XML oppure opportuni complex types.
+
+### Tipi Base, String ed Array
+int, double,...,String sono XML Schema primitive types e non necessitano di particolari definizioni nel file WSDL.
+Gli array non sono primitive types: essi sono definiti nel SOAP encoding schema, quindi è sufficiente importare la definizione di questo XML schema.
+
+### Il file WSDL
+Esso è particolarmente verboso. Solitamente viene scritto in modo automatico da applicazioni come Apache Axis. 

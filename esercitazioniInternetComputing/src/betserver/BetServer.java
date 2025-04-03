@@ -48,7 +48,7 @@ public class BetServer {
                     long puntata = Long.parseLong(line.substring(pos+1));
                     InetAddress ip = k.getInetAddress();
                     Scommessa s = new Scommessa(numCavallo, puntata, ip);
-                    int key = s.getID();
+                    int key = s.getID_scommessa();
                     scommesse.put(key,s);
                     out.println("Scommessa Accettata");
                     out.close();
@@ -149,6 +149,30 @@ public class BetServer {
             socket.send(pk);
         }catch (IOException e){
             System.out.println(e);
+        }
+    }
+
+    public static void main(String[] args) {
+        int serverPort = 8001;
+        int clientPort = 8002;
+        try{
+            Calendar deadline = Calendar.getInstance();
+            deadline.add(Calendar.MINUTE, 1);
+            BetServer server = new BetServer(serverPort, deadline);
+            System.out.println("Scommesse aperte");
+            server.accettaScommesse();
+            server.rifiutaScommesse();
+            int vincente=((int)(Math.random()*12))+1;
+            System.out.println("E' risultato vincente il cavallo: " + vincente);
+            LinkedList<Scommessa> elencoVincitori = server.controllaScommesse(vincente);
+            InetAddress multiAddress = InetAddress.getByName("230.0.0.1");
+            server.comunicaVincitori(elencoVincitori, multiAddress, clientPort);
+            Thread.sleep(120000);
+            server.resetServer();
+        }catch (InterruptedException ie){
+            System.out.println(ie);
+        }catch (UnknownHostException uhe){
+            System.out.println(uhe);
         }
     }
 
