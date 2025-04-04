@@ -47,7 +47,7 @@ public class MulticastHandler extends Thread {
             while(true){
                 DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
                 socket.receive(receivePacket);
-                String received = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                String received = new String(receivePacket.getData());
                 StringTokenizer tokenizer = new StringTokenizer(received, " ");
                 String addressReceived = tokenizer.nextToken();
                 int portReceived = Integer.parseInt(tokenizer.nextToken());

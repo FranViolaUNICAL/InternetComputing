@@ -6,8 +6,9 @@ import java.net.*;
 public class EchoServer {
     public static void main(String[] args){
         try{
-            ServerSocket s = new ServerSocket(8189);
+            ServerSocket s = new ServerSocket(8189); // è sottinteso che poi i client usano una socket normale che si collega con l'indirizzo IP del server
             Socket incoming = s.accept();
+            System.out.println(InetAddress.getLocalHost().getHostAddress());
             BufferedReader in = new BufferedReader(new InputStreamReader(incoming.getInputStream()));
             PrintWriter out = new PrintWriter(incoming.getOutputStream(),true);
             out.println("Hello! Enter BYE to exit.");
