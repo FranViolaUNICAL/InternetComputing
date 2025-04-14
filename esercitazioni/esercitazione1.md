@@ -188,7 +188,7 @@ Connection: close
     1. 500 Internal Server Error: Messaggio di errore generico
     2. 503 Service Unavailable: Il server non é al momento disponibile, generalmente é una condizione temporanea.
   
-### Download di una pagina HTML da Java
+### Download di una paequalsgina HTML da Java
 ```Java
 import java.io.*;
 import java.net.*;
